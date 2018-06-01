@@ -1,0 +1,78 @@
+﻿@model IEnumerable<BiblioWeb.Models.Livro>
+
+@{
+    ViewData["Title"] = "Administração - BiblioWeb";
+}
+
+<br />
+
+@foreach (var item in Model.OrderBy(p => p.Titulo))
+{
+    var imgSrc = (dynamic)null;
+
+    var sinopse = (dynamic)null;
+
+    if (item.Sinopse.Length > 150)
+    {
+        sinopse = item.Sinopse.Substring(0, 150).ToString();
+    }
+    else
+    {
+        sinopse = item.Sinopse;
+    }
+
+    <div class="col-md-5 panel panel-default">
+        <div class="panel-heading">
+            <h2 class="panel-title"><a asp-action="Details" asp-route-id="@item.Id">@Html.DisplayFor(modelItem => item.Titulo)</a></h2>
+        </div>
+        <br />
+
+        @if (item.FotoCapa != null)
+        {
+            var base64 = Convert.ToBase64String(item.FotoCapa.Picture);
+
+            if (base64 != null)
+            {
+                imgSrc = String.Format("data:image/png;base64,{0}", base64);
+            }
+            else
+            {
+                imgSrc = "~/images/indisponivel/indisponivel.png";
+            }
+        }
+        else
+        {
+            imgSrc = "/images/indisponivel/indisponivel.png";
+        }
+
+        <div class="panel-body">
+            <img src="@imgSrc" class="img-responsive thumbnail center-block" alt="Capa Livro" />
+
+            <h4>Sinopse</h4>
+            <p class="text-justify">
+                @sinopse...
+                <small><a asp-action="Details" asp-route-id="@item.Id">Mostrar mais</a></small>
+            </p>
+
+            <h4>Autor(es)</h4>
+            <p class="text-justify">
+                @Html.DisplayFor(modelItem => item.Autor)
+            </p>
+
+            <h4>Gêneros</h4>
+            <p class="text-justify">
+                @Html.DisplayFor(modelItem => item.Genero)
+            </p>
+        </div>
+        <div class="panel-footer">
+            <a class="text-primary glyphicon glyphicon-pencil btn-lg" asp-action="Edit" asp-route-id="@item.Id"></a>
+            <a class="text-primary glyphicon glyphicon-trash btn-lg" asp-action="Delete" asp-route-id="@item.Id"></a>
+        </div>
+    </div>
+}
+
+<div class="col-md-12" id="bottaoAdd">
+    <h1>
+        <a asp-action="Create"><span class="glyphicon glyphicon-plus-sign"></span></a>
+    </h1>
+</div>

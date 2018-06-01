@@ -32,4 +32,9 @@
     .carousel-caption {
         display: none;
     }
+} 
+
+.panel{
+    margin: 1em 1em;
+    padding: 0;
 }
