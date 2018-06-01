@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
@@ -11,6 +7,14 @@ using Microsoft.Extensions.DependencyInjection;
 using BiblioWeb.Data;
 using BiblioWeb.Models;
 using BiblioWeb.Services;
+using SixLabors.ImageSharp.Web.Caching;
+using SixLabors.ImageSharp.Web.Commands;
+using SixLabors.ImageSharp.Web.DependencyInjection;
+using SixLabors.ImageSharp.Web.Memory;
+using SixLabors.ImageSharp.Web.Middleware;
+using SixLabors.ImageSharp.Web.Processors;
+using SixLabors.ImageSharp.Web.Resolvers;
+using Microsoft.Extensions.Options;
 
 namespace BiblioWeb
 {
@@ -26,12 +30,35 @@ namespace BiblioWeb
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddEntityFrameworkNpgsql()
+                .AddDbContext<ApplicationDbContext>(
+                    options => options.UseNpgsql(
+                        Configuration.GetConnectionString("BaseBiblioWeb")));
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+            services.AddImageSharpCore()
+                .SetRequestParser<QueryCollectionRequestParser>()
+                .SetBufferManager<PooledBufferManager>()
+                .SetCache(provider => new PhysicalFileSystemCache(
+                    provider.GetRequiredService<IHostingEnvironment>(),
+                    provider.GetRequiredService<IBufferManager>(),
+                    provider.GetRequiredService<IOptions<ImageSharpMiddlewareOptions>>())
+                {
+                    Settings =
+                    {
+                        [PhysicalFileSystemCache.Folder] = PhysicalFileSystemCache.DefaultCacheFolder,
+                        [PhysicalFileSystemCache.CheckSourceChanged] = "true"
+                    }
+                })
+                .SetCacheHash<CacheHash>()
+                .SetAsyncKeyLock<AsyncKeyLock>()
+                .AddResolver<PhysicalFileSystemResolver>()
+                .AddProcessor<ResizeWebProcessor>()
+                .AddProcessor<FormatWebProcessor>()
+                .AddProcessor<BackgroundColorWebProcessor>();
 
             // Add application services.
             services.AddTransient<IEmailSender, EmailSender>();
@@ -61,7 +88,7 @@ namespace BiblioWeb
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    template: "{controller=Livros}/{action=Index}/{id?}");
             });
         }
     }
