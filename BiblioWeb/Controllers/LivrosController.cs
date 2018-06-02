@@ -13,12 +13,10 @@ namespace BiblioWeb.Controllers
     public class LivrosController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private IHostingEnvironment _hostingEnvironment;
 
-        public LivrosController(ApplicationDbContext context, IHostingEnvironment environment)
+        public LivrosController(ApplicationDbContext context)
         {
             _context = context;
-            _hostingEnvironment = environment;
         }
 
         // GET: Livros
@@ -59,26 +57,26 @@ namespace BiblioWeb.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,Titulo,Subtitulo,Sinopse,Edicao,Ano,Genero,Editora,Autor,ISBN,IdFotoCapa,IdFotoSumario")] Livro livro, IFormFile FotoCapa)
+        public async Task<IActionResult> Create([Bind("Id,Titulo,Subtitulo,Sinopse,Edicao,Ano,Genero,Editora,Autor,ISBN,IdFotoCapa,IdFotoSumario")] Livro livro, IFormFile fotoCapa)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    if (FotoCapa.Length > 0)
+                    if (fotoCapa != null)
                     {
                         Imagem imagemCapa = new Imagem();
 
-                        var nomeExtensao = FotoCapa.FileName.Split(".");
+                        var nomeExtensao = fotoCapa.FileName.Split(".");
 
                         if (nomeExtensao.Count() == 2)
                         {
                             imagemCapa.Description = nomeExtensao[0];
                             imagemCapa.Extension = nomeExtensao[1];
-                            imagemCapa.ContentType = FotoCapa.ContentType;
-                            imagemCapa.Length = Convert.ToInt32(FotoCapa.Length);
+                            imagemCapa.ContentType = fotoCapa.ContentType;
+                            imagemCapa.Length = Convert.ToInt32(fotoCapa.Length);
 
-                            imagemCapa.Picture = Utils.Utils.ToByteArray(FotoCapa);
+                            imagemCapa.Picture = Utils.Utils.ToByteArray(fotoCapa);
 
                             livro.FotoCapa = imagemCapa;
                         }
@@ -97,8 +95,11 @@ namespace BiblioWeb.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                ViewBag.SuccessMessage = "Livro cadastrado com sucesso!";
+                return RedirectToAction(nameof(Create));
             }
+
+            ViewBag.ErrorMessage = "Ocorreu um erro ao cadastrar o livro!";
             return View(livro);
         }
 
@@ -138,8 +139,9 @@ namespace BiblioWeb.Controllers
                 try
                 {
                     Imagem imagemCapa = new Imagem();
+                    var capaBanco = (dynamic)null;
 
-                    if (fotoCapa.Length > 0)
+                    if (fotoCapa != null)
                     {
                         var nomeExtensao = fotoCapa.FileName.Split(".");
 
@@ -168,10 +170,10 @@ namespace BiblioWeb.Controllers
 
                         var result = query.Single();
 
-                        imagemCapa.Id = result;
+                        capaBanco = _context.Imagem.SingleOrDefaultAsync(m => m.Id == result);
                     }
                     _context.Update(livro);
-                    _context.Update(imagemCapa);
+                    _context.Update(capaBanco.Result);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)

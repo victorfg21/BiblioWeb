@@ -32,9 +32,18 @@
     .carousel-caption {
         display: none;
     }
-} 
+}
 
-.panel{
+.panel {
     margin: 1em 1em;
     padding: 0;
+}
+
+.glyphicon {
+    font-size: 25px;
+}
+
+#icoAddLivro {
+    font-size: 75px;
+    padding: 0.3em;
 }

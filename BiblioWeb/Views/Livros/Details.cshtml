@@ -4,8 +4,10 @@
     ViewData["Title"] = "Detalhe";
 }
 
+<br />
+
 <div>
-    <h4>@Html.DisplayFor(model => model.Titulo)</h4>
+    <h2>@Html.DisplayFor(model => model.Titulo)</h2>
     <hr />
     <dl class="dl-horizontal">
         <dt>
@@ -59,6 +61,6 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.Id">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+    <a asp-action="Index" class="glyphicon glyphicon-arrow-left btn-lg"></a>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="glyphicon glyphicon-pencil btn-lg"></a>
 </div>

@@ -24,7 +24,6 @@ namespace BiblioWeb.Utils
             using (MagickImage image = new MagickImage(file))
             {
                 image.Resize(0, 300);
-                //image.Crop(0, 300);
                 return image.ToByteArray();
             }
         }
